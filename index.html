@@ -1,0 +1,145 @@
+<head>
+  <link rel="stylesheet" href="style.css">
+  <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+</head>
+
+<div class="container"></div>
+
+<div class="button">
+
+  <button type ="submit" id="startButton">Start</button>
+
+  <button id="resetButton">Reset</button>
+
+</div>
+
+<script>
+  
+var width = 400,
+    height = 400,
+    timePassed = 0,
+    timeLimit = 15;
+
+var fields = [{
+  value: timeLimit,
+  size: timeLimit,
+  update: function() {
+    return timePassed = timePassed + 1;
+  }
+}];
+
+var nilArc = d3.svg.arc()
+  .innerRadius(width / 3 - 133)
+  .outerRadius(width / 3 - 133)
+  .startAngle(0)
+  .endAngle(2 * Math.PI);
+
+var arc = d3.svg.arc()
+  .innerRadius(width / 3 - 55)
+  .outerRadius(width / 3 - 25)
+  .startAngle(0)
+  .endAngle(function(d) {
+    return ((d.value / d.size) * 2 * Math.PI);
+  });
+
+var svg = d3.select(".container").append("svg")
+  .attr('width', width)
+  .attr('height', height);
+
+var field = svg.selectAll('.field')
+  .data(fields)
+  .enter().append('g')
+  .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")")
+  .attr('class', "field");
+
+var back = field.append("path")
+  .attr("class", "path path--background")
+  .attr("d", arc);
+
+var path = field.append("path")
+  .attr("class", "path path--foreground");
+
+var label = field.append("text")
+  .attr("class", "label")
+  .attr("dy", ".35em");
+
+const startTimer = document.getElementById('startButton')
+
+const resetTimer = document.getElementById('resetButton')
+
+startTimer.onclick = (function update() {
+  document.getElementById('startButton').disabled = true;
+  field
+    .each(function(d) {
+    d.previous = d.value, d.value = d.update(timePassed);
+  });
+  
+  path.transition()
+    .ease("elastic")
+    .duration(500)
+    .attrTween("d", arcTween);
+
+  if ((timeLimit - timePassed) > 0) {
+    label.style("font-size", "120px")
+      .attr("transform", "translate(0,"+ +4 +")")
+      .text(function(d) {
+      return d.size - d.value;
+    });
+  }
+  
+  if ((timeLimit - timePassed) < 10)
+    pulseText();
+  ;
+
+  if (timePassed <= timeLimit)
+    setTimeout(update, 1000 - (timePassed % 1000));
+});
+
+function pulseText() {
+  back.classed("pulse", true);
+  label.classed("pulse", true);
+  
+  if ((timeLimit - timePassed) > 0) {
+    label.style("font-size", "120px")
+      .attr("transform", "translate(0,"+ +4 +")")
+      .text(function(d) {
+      return d.size - d.value;
+    });
+  }
+  else if ((timeLimit - timePassed) == 0) 
+    label.text("Time's Up!");
+  ;
+  
+  label.transition()
+    .ease("elastic")
+    .duration(900)
+    .style("font-size", "70px")
+    .attr("transform", "translate(0," + -10 +")");
+}
+
+function arcTween(b) {
+  var i = d3.interpolate({
+    value: b.previous
+  }, b);
+  return function(t) {
+    return arc(i(t));
+  };
+}
+
+function resetInterval() {
+  timePassed = -1;
+  // if getElementByClassName("label pulse").text == "Time's Up" {
+  //   update()
+  // };
+}
+
+document.getElementById('resetButton')
+  .addEventListener('click', resetInterval);
+
+onload = function temporaryTime() {
+  timePassed = 0;
+  label.text(timeLimit - timePassed)
+  label.style("font-size", "120px");
+};
+
+</script>
