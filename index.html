@@ -13,8 +13,8 @@
 
 </div>
 
-<script>
-  
+<script type="module">
+ 
 var width = 400,
     height = 400,
     timePassed = 0,
@@ -24,7 +24,7 @@ var fields = [{
   value: timeLimit,
   size: timeLimit,
   update: function() {
-    return timePassed = timePassed + 1;
+    return timePassed += 1;
   }
 }];
 
@@ -67,6 +67,8 @@ const startTimer = document.getElementById('startButton')
 
 const resetTimer = document.getElementById('resetButton')
 
+let intervalTimer;
+
 startTimer.onclick = (function beginCountdown() {
   document.getElementById('startButton').disabled = true;
   field
@@ -87,12 +89,13 @@ startTimer.onclick = (function beginCountdown() {
     });
   }
   
-  if ((timeLimit - timePassed) < 10)
+  if ((timeLimit - timePassed) < 10) {
     pulseText();
-  ;
+  };
 
-  if (timePassed <= timeLimit)
-    setTimeout(beginCountdown, 1000 - (timePassed % 1000));
+  if (timePassed <= timeLimit) {
+    intervalTimer = setTimeout(beginCountdown, 1000 - (timePassed % 1000));
+  }
 });
 
 function pulseText() {
@@ -127,11 +130,13 @@ function arcTween(b) {
 }
 
 function resetCountdown() {
-  beginCountdown;
+  clearTimeout(intervalTimer)
+  timePassed = -1;
+  startTimer.onclick();
 }
 
 document.getElementById('resetButton')
-  .addEventListener('click', resetInterval);
+  .addEventListener('click', resetCountdown);
 
 onload = function temporaryTime() {
   timePassed = 0;
